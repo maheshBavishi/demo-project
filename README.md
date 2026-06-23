@@ -1,1 +1,2 @@
-# demo-project
+# 7cmg-admin-app
+

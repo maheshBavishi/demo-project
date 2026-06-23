@@ -1,0 +1,28 @@
+# https://hub.docker.com/r/library/node/tags/
+image: node:14
+# This folder is cached between builds
+# http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+#AWS access keys stored as secret variables
+variables:
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+#This declares the pipeline stages
+stages:
+  - build
+cache:
+  paths:
+    - node_modules/
+build:
+  stage: build
+  only:
+    - master
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y python-dev python-pip
+    - pip install awscli
+  script:
+    - npm cache clear --force
+    - yarn install
+    - CI=false npm run build
+    - aws s3 cp --recursive ./build s3://www.admin.7thcentury.co.uk
+    - aws cloudfront create-invalidation --distribution-id E3LET3Q13TTHFZ --paths "/*"
